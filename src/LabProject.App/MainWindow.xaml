@@ -1,0 +1,214 @@
+<Window x:Class="LabProject.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LabProject.App"
+        Title="Эмпирический анализ временной сложности алгоритмов"
+        Width="1320" Height="840" MinWidth="1060" MinHeight="700"
+        Background="#F1F4FA" FontFamily="Segoe UI" FontSize="13"
+        WindowStartupLocation="CenterScreen" UseLayoutRounding="True">
+
+    <Grid>
+
+        <Grid Margin="18,18,18,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="338"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Левая панель -->
+            <Grid Grid.Column="0" Margin="0,0,18,0">
+                <Border Style="{StaticResource ShadowLayer}"/>
+                <Border Style="{StaticResource Card}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="20,18,20,20">
+                            <TextBlock Text="ПАРАМЕТРЫ ЭКСПЕРИМЕНТА" Style="{StaticResource SectionTitle}"/>
+
+                            <TextBlock Text="Алгоритм" Style="{StaticResource FieldLabel}" Margin="2,12,0,5"/>
+                            <ComboBox x:Name="AlgoCombo" ItemTemplate="{StaticResource AlgoItemTemplate}"
+                                      SelectedValuePath="Key" SelectionChanged="AlgoCombo_SelectionChanged"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="N_max" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="NMaxBox" Text="500" LostFocus="IntBox_LostFocus"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Шаг N" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="NStepBox" Text="20" LostFocus="IntBox_LostFocus"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- M_max / шаг M: видны только для умножения матриц -->
+                            <Grid x:Name="MPanel" Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="M_max" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MMaxBox" Text="100" LostFocus="IntBox_LostFocus"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Шаг M" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MStepBox" Text="10" LostFocus="IntBox_LostFocus"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Кол-во запусков" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="RunsBox" Text="5" LostFocus="IntBox_LostFocus"/>
+
+                            <CheckBox x:Name="ForceCheck" Margin="0,18,0,0">
+                                <TextBlock Text="Принудительный пересчёт (игнорировать кэш)" TextWrapping="Wrap"
+                                           Foreground="#374151"/>
+                            </CheckBox>
+
+                            <Button x:Name="RunButton" Content="▶   Запустить эксперимент" Margin="0,20,0,0"
+                                    Click="RunButton_Click"/>
+
+                            <ProgressBar x:Name="RunProgress" Minimum="0" Maximum="100" Value="0" Margin="0,16,0,0"/>
+
+                            <TextBlock x:Name="StatusText" Text="Готов к запуску." TextWrapping="Wrap"
+                                       Foreground="#4B5563" Margin="2,10,0,0"/>
+
+                            <Border Height="1" Background="#E8ECF4" Margin="0,20,0,18"/>
+                            <TextBlock Text="ДОПОЛНИТЕЛЬНО" Style="{StaticResource SectionTitle}"/>
+
+                            <Button x:Name="CompareButton" Content="⚖   Сравнить алгоритмы" Margin="0,12,0,0"
+                                    Style="{StaticResource SecondaryButton}" Click="CompareButton_Click"/>
+                            <Button x:Name="SaveButton" Content="💾   Сохранить изображение…" Margin="0,8,0,0"
+                                    Style="{StaticResource SecondaryButton}" Click="SaveButton_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Правая область -->
+            <TabControl x:Name="Tabs" Grid.Column="1" SelectionChanged="Tabs_SelectionChanged">
+
+                <!-- График -->
+                <TabItem Header="📊  График">
+                    <Grid Margin="0,14,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Border Style="{StaticResource ShadowLayer}"/>
+                            <Border Style="{StaticResource Card}" ClipToBounds="True" Padding="6">
+                                <local:SceneView x:Name="PlotView"/>
+                            </Border>
+                        </Grid>
+
+                        <UniformGrid Grid.Row="1" Rows="1" Columns="6" Margin="0,14,-10,0">
+                            <Border Style="{StaticResource StatChip}">
+                                <StackPanel>
+                                    <TextBlock Text="МОДЕЛЬ" Style="{StaticResource StatCaption}"/>
+                                    <TextBlock x:Name="StatModel" Text="—" Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatChip}">
+                                <StackPanel>
+                                    <TextBlock Text="КОНСТАНТА C" Style="{StaticResource StatCaption}"/>
+                                    <TextBlock x:Name="StatC" Text="—" Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatChip}">
+                                <StackPanel>
+                                    <TextBlock Text="ОШИБКА (MSE)" Style="{StaticResource StatCaption}"/>
+                                    <TextBlock x:Name="StatMse" Text="—" Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatChip}">
+                                <StackPanel>
+                                    <TextBlock Text="ТОЧЕК" Style="{StaticResource StatCaption}"/>
+                                    <TextBlock x:Name="StatPoints" Text="—" Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatChip}">
+                                <StackPanel>
+                                    <TextBlock Text="ВРЕМЯ РАСЧЁТА" Style="{StaticResource StatCaption}"/>
+                                    <TextBlock x:Name="StatTime" Text="—" Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatChip}">
+                                <StackPanel>
+                                    <TextBlock Text="ИЗ КЭША" Style="{StaticResource StatCaption}"/>
+                                    <TextBlock x:Name="StatCache" Text="—" Style="{StaticResource StatValue}"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- Визуализация -->
+                <TabItem Header="🎬  Визуализация алгоритма">
+                    <Grid Margin="0,14,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Style="{StaticResource Card}" Padding="16,12" Margin="0,0,0,12">
+                            <DockPanel LastChildFill="True">
+                                <Button x:Name="NewDataButton" DockPanel.Dock="Right" Content="🎲  Новые данные"
+                                        Style="{StaticResource SecondaryButton}" Padding="14,8" Margin="14,0,0,0"
+                                        Click="NewDataButton_Click"/>
+                                <TextBlock DockPanel.Dock="Left" Text="Алгоритм" VerticalAlignment="Center"
+                                           Foreground="#6B7280" Margin="0,0,12,0"/>
+                                <ComboBox x:Name="VizCombo" ItemTemplate="{StaticResource AlgoItemTemplate}"
+                                          SelectedValuePath="Key" SelectionChanged="VizCombo_SelectionChanged"/>
+                            </DockPanel>
+                        </Border>
+
+                        <Grid Grid.Row="1">
+                            <Border Style="{StaticResource ShadowLayer}"/>
+                            <Border Style="{StaticResource Card}" ClipToBounds="True" Padding="6">
+                                <local:SceneView x:Name="VizView"/>
+                            </Border>
+                        </Grid>
+
+                        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="16,12" Margin="0,12,0,0">
+                            <DockPanel LastChildFill="True">
+                                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                                    <Button x:Name="FirstButton" Content="⏮" Width="42" Padding="0,8"
+                                            Style="{StaticResource SecondaryButton}" Click="FirstButton_Click" ToolTip="В начало"/>
+                                    <Button x:Name="PrevButton" Content="◀" Width="42" Padding="0,8" Margin="6,0,0,0"
+                                            Style="{StaticResource SecondaryButton}" Click="PrevButton_Click" ToolTip="Шаг назад"/>
+                                    <Button x:Name="PlayButton" Content="▶  Пуск" Width="108" Margin="6,0,0,0"
+                                            Click="PlayButton_Click"/>
+                                    <Button x:Name="NextButton" Content="▶|" Width="42" Padding="0,8" Margin="6,0,0,0"
+                                            Style="{StaticResource SecondaryButton}" Click="NextButton_Click" ToolTip="Шаг вперёд"/>
+                                    <Button x:Name="LastButton" Content="⏭" Width="42" Padding="0,8" Margin="6,0,0,0"
+                                            Style="{StaticResource SecondaryButton}" Click="LastButton_Click" ToolTip="В конец"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="16,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="Скорость" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Slider x:Name="SpeedSlider" Width="120" Minimum="1" Maximum="10" Value="6"
+                                            IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center"
+                                            ValueChanged="SpeedSlider_ValueChanged"/>
+                                </StackPanel>
+                                <Border DockPanel.Dock="Right" Background="#EEF3FF" CornerRadius="8" Padding="10,5"
+                                        Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="FrameLabel" Text="0 / 0" Foreground="#3B5BDB"
+                                               FontWeight="SemiBold" MinWidth="58" TextAlignment="Center"/>
+                                </Border>
+                                <Slider x:Name="FrameSlider" Minimum="0" Maximum="0" Value="0" Margin="18,0,0,0"
+                                        VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="1"
+                                        ValueChanged="FrameSlider_ValueChanged"/>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>
